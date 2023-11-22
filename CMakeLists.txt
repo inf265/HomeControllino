@@ -19,6 +19,8 @@ include(cmake/libraries.cmake/arduino_rs485.cmake)
 include(cmake/libraries.cmake/arduino_modbus_controllino.cmake)
 include(cmake/libraries.cmake/spi.cmake)
 include(cmake/libraries.cmake/mdns.cmake)
+include(cmake/libraries.cmake/ethernet_webserver.cmake)
+include(cmake/libraries.cmake/functional-vlpp.cmake)
 
 add_executable(blink blink.cpp)
 target_link_libraries(blink PUBLIC ArduinoCore)
@@ -27,6 +29,8 @@ target_link_libraries(blink PUBLIC Ethernet)
 target_link_libraries(blink PUBLIC SPI)
 target_link_libraries(blink PUBLIC EEPROM)
 target_link_libraries(blink PUBLIC MDNS)
+target_link_libraries(blink PUBLIC EthernetWebserver)
+
 target_compile_options(blink PUBLIC
     "-Wall"
     "-Wextra"

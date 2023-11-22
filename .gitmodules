@@ -1,3 +1,9 @@
 [submodule "libraries/ArduinoMDNS"]
 	path = libraries/ArduinoMDNS
 	url = git@github.com:arduino-libraries/ArduinoMDNS.git
+[submodule "libraries/EthernetWebServer"]
+	path = libraries/EthernetWebServer
+	url = https://github.com/khoih-prog/EthernetWebServer.git
+[submodule "libraries/functional-vlpp"]
+	path = libraries/functional-vlpp
+	url = https://github.com/khoih-prog/functional-vlpp.git
