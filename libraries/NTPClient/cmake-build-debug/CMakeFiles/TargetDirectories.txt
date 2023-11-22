@@ -1,0 +1,3 @@
+/mnt/4tbdisk/fluence/controller_software/LeafController/Controllino/libraries/NTPClient/cmake-build-debug/CMakeFiles/NTPClient.dir
+/mnt/4tbdisk/fluence/controller_software/LeafController/Controllino/libraries/NTPClient/cmake-build-debug/CMakeFiles/edit_cache.dir
+/mnt/4tbdisk/fluence/controller_software/LeafController/Controllino/libraries/NTPClient/cmake-build-debug/CMakeFiles/rebuild_cache.dir

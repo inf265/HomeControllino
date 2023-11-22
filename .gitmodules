@@ -1,0 +1,3 @@
+[submodule "libraries/ArduinoMDNS"]
+	path = libraries/ArduinoMDNS
+	url = git@github.com:arduino-libraries/ArduinoMDNS.git

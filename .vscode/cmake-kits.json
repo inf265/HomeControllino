@@ -1,0 +1,18 @@
+[
+    {
+        "name": "Leonardo",
+        "toolchainFile": "${workspaceFolder}/cmake/toolchain/leonardo.toolchain.cmake"
+    },
+    {
+        "name": "UNO",
+        "toolchainFile": "${workspaceFolder}/cmake/toolchain/uno.toolchain.cmake"
+    },
+    {
+        "name": "MEGA2560",
+        "toolchainFile": "${workspaceFolder}/cmake/toolchain/mega.toolchain.cmake"
+    },
+    {
+        "name": "Controllino MEGA",
+        "toolchainFile": "${workspaceFolder}/cmake/toolchain/controllino.mega.toolchain.cmake"
+    }
+]
