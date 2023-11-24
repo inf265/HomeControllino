@@ -11,6 +11,8 @@ target_compile_options(ArduinoFlags INTERFACE
     "-fno-exceptions"
     "-ffunction-sections"
     "-fdata-sections"
+    "-felide-constructors"
+    "-std=c++0x"
     "$<$<COMPILE_LANGUAGE:CXX>:-fno-threadsafe-statics>"
     "-mmcu=${ARDUINO_MCU}"
 )

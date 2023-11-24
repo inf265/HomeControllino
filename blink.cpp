@@ -5,6 +5,8 @@
 #include <ArduinoMDNS.h>
 // #include <EthernetWebServer.h>
 #include "defines.h"
+#include <ArduinoJson.h>
+#include <TrueRandom.h>
 
 #define DEBUG 1
 
@@ -98,26 +100,29 @@ void drawGraph()
 void setup()
 {
     Serial.begin(115200);
-    while (!Serial)
+    while (!Serial && !Serial.available())
         ;
 
+    Serial.println("Serial initialized");
+
     // Random MAC address stored in EEPROM
-    if (EEPROM.read(1) == '#')
+    if (EEPROM.read(0) == '#')
     {
-        for (int i = 2; i < 6; i++)
+        for (int i = 0; i < 6; i++)
         {
-            macAddress[i] = EEPROM.read(i);
+            macAddress[i] = EEPROM.read(i + 1);
         }
     }
     else
     {
-        randomSeed(analogRead(0));
-        for (int i = 2; i < 6; i++)
+        for (int i = 0; i < 6; i++)
         {
-            macAddress[i] = random(0, 255);
-            EEPROM.write(i, macAddress[i]);
+            EEPROM.write(i + 1, 0);
+            while (((macAddress[i] = TrueRandom.random(256)) % 2) != 0)
+                ;
+            EEPROM.write(i + 1, macAddress[i]);
         }
-        EEPROM.write(1, '#');
+        EEPROM.write(0, '#');
     }
     snprintf(macstr, 18, "%02x:%02x:%02x:%02x:%02x:%02x", macAddress[0], macAddress[1], macAddress[2], macAddress[3], macAddress[4], macAddress[5]);
 

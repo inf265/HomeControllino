@@ -10,4 +10,4 @@ set(VARIANTS_HOME ${CMAKE_HOME_DIRECTORY}/libraries/CONTROLLINO_Library/Boards/a
 include(${CMAKE_CURRENT_LIST_DIR}/avr.toolchain.cmake)
 
 add_compile_definitions(CONTROLLINO_MEGA)
-SET(CMAKE_CXX_FLAGS "-std=gnu++17")
+SET(CMAKE_CXX_FLAGS "-std=c++0x -felide-constructors")

@@ -7,3 +7,15 @@
 [submodule "libraries/functional-vlpp"]
 	path = libraries/functional-vlpp
 	url = https://github.com/khoih-prog/functional-vlpp.git
+[submodule "libraries/ArduinoJson"]
+	path = libraries/ArduinoJson
+	url = https://github.com/bblanchon/ArduinoJson.git
+[submodule "libraries/TrueRandom"]
+	path = libraries/TrueRandom
+	url = https://github.com/sirleech/TrueRandom.git
+[submodule "libraries/ArxContainer"]
+	path = libraries/ArxContainer
+	url = https://github.com/hideakitai/ArxContainer.git
+[submodule "libraries/AceButton"]
+	path = libraries/AceButton
+	url = https://github.com/bxparks/AceButton.git
