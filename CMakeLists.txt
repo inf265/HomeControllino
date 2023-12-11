@@ -61,7 +61,7 @@ target_compile_options(blink PUBLIC
 )
 arduino_avr_hex(blink)
 
-set(ARDUINO_PORT "/dev/ttyACM1"
+set(ARDUINO_PORT "/dev/ttyACM0"
     CACHE STRING "The serial port for uploading using avrdude")
 arduino_avr_upload(blink ${ARDUINO_PORT})
 arduino_avr_upload(homecontrollino ${ARDUINO_PORT})

@@ -3,6 +3,7 @@
 #include <Ethernet.h>
 #include <EthernetUdp.h>
 #include <ArduinoMDNS.h>
+#include "Identification.hpp"
 
 namespace HC
 {
@@ -32,10 +33,9 @@ namespace HC
             {
                 LOGN(F("Multicast address initialized"));
             }
-            char macstr[21];
-            memset(macstr, 0, 21);
-            snprintf(macstr, 21, "controllino-%02x-%02x-%02x", mac[3], mac[4], mac[5]);
-            if (mdns.begin(Ethernet.localIP(), macstr))
+            memset(mdnsName, 0, 21);
+            snprintf(mdnsName, 21, "controllino-%02x-%02x-%02x", mac[3], mac[4], mac[5]);
+            if (mdns.begin(Ethernet.localIP(), mdnsName))
             {
                 LOGN("MDNS initialized");
             }

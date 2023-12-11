@@ -1,0 +1,42 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Config</title>
+  <link href="https://cdn.jsdelivr.net/npm/jsoneditor@8.6.3/dist/jsoneditor.css" rel="stylesheet" type="text/css">
+  <script src="https://cdn.jsdelivr.net/npm/jsoneditor@8.6.3/dist/jsoneditor.js"></script>
+  <style type="text/css">
+    #jsoneditor {
+      width: 500px;
+      height: 500px;
+    }
+  </style>
+</head>
+<body>
+<p>
+  <button id="getJSON">Get JSON</button>
+</p>
+<div id="jsoneditor"></div>
+<script>
+  const container = document.getElementById('jsoneditor')
+  const options = {}
+  const editor = new JSONEditor(container, options)
+  document.getElementById('getJSON').onclick = function () {
+    var xhr = new XMLHttpRequest();
+    var url = "url";
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        alert("Applied.")
+      } else {
+        alert("Failed.")
+      }
+    };
+    const json = editor.get()
+    var data = JSON.stringify(json);
+    xhr.send(data);
+    alert(JSON.stringify(json, null, 2))
+  }
+</script>
+</body>
+</html>
