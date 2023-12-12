@@ -85,7 +85,6 @@ namespace HC
             ParseState ps = ParseState::HEADLINE;
             char parseBuf[512]{0};
             int pBidx{0};
-            ::Serial.println("Parse POST");
 
             int length = 0;
             while (!end)
@@ -99,7 +98,6 @@ namespace HC
                 {
                     if (strncmp(parseBuf, "\r\n", 2) == 0)
                     {
-                        ::Serial.println("Got body");
                         ps = ParseState::BODY;
                         memset(parseBuf, 0, 512);
                         pBidx = 0;
@@ -107,10 +105,8 @@ namespace HC
                     }
                     if (c == '\n')
                     {
-                        ::Serial.println(parseBuf);
                         if (strncmp(parseBuf, "Content-Length", 14) == 0)
                         {
-                            ::Serial.println("Got cl");
                             for (int i = 0; i < 512; ++i)
                             {
                                 if (parseBuf[i] == ':')
@@ -119,11 +115,6 @@ namespace HC
                                     break;
                                 }
                             }
-                            ::Serial.println(length);
-                        }
-                        else
-                        {
-                            ::Serial.println("No cl");
                         }
                         memset(parseBuf, 0, 512);
                         pBidx = 0;
@@ -151,7 +142,7 @@ namespace HC
                 }
                 }
             }
-            ::Serial.println(parseBuf);
+            LOGN(parseBuf);
         }
 
         void run()
@@ -163,31 +154,34 @@ namespace HC
                 LOGN("new client");
                 // an http request ends with a blank line
                 boolean currentLineIsBlank = true;
-                // char parseBuf[16]{0};
-                String parseBuf;
+                char parseBuf[512]{0};
+                int pBidx{0};
+                // String parseBuf;
                 ParseState s = ParseState::REQMETHOD;
                 while (client.connected())
                 {
                     if (client.available())
                     {
                         char c = client.read();
-                        parseBuf += c;
+                        parseBuf[pBidx] = c;
+                        ++pBidx;
 
                         switch (s)
                         {
                         case ParseState::REQMETHOD:
                         {
-                            if (parseBuf == F("POST "))
+                            if (strncmp(parseBuf, "POST ", 5) == 0)
                             {
                                 LOGN(F("Found POST"));
                                 handlePost(client);
                                 client.stop();
                                 LOGN(F("client disconnected"));
                             }
-                            else if (parseBuf == F("GET "))
+                            else if (strncmp(parseBuf, "GET ", 4) == 0)
                             {
                                 LOGN(F("Found GET"));
-                                parseBuf = "";
+                                memset(parseBuf, 0, 512);
+                                pBidx = 0;
                                 s = ParseState::REQURI;
                             }
                             break;
@@ -199,7 +193,7 @@ namespace HC
                                 LOGN(F("Found Re-Line:"));
                                 LOG(parseBuf);
                                 LOGN(".");
-                                if (parseBuf.endsWith(F("editor ")))
+                                if (strncmp(&parseBuf[pBidx - 7], "editor ", 5) == 0) // parseBuf.endsWith(F("editor ")))
                                 {
                                     handleEditor(client);
                                     client.stop();

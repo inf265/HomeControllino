@@ -39,10 +39,11 @@ namespace HC
             {
                 LOGN("MDNS initialized");
             }
-
-            mdns.addServiceRecord("Controllino mDNS Webserver._http",
-                                  80,
-                                  MDNSServiceTCP);
+            /*
+                        mdns.addServiceRecord("Controllino mDNS Webserver._http",
+                                              80,
+                                              MDNSServiceTCP);
+                                              */
         }
 
         void run()
