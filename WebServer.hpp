@@ -1,6 +1,7 @@
 #pragma once
 #include <Ethernet.h>
 #include "InputHandlerSwitches.hpp"
+#include "Eeprom.hpp"
 namespace HC
 {
     EthernetServer server(80);
@@ -18,11 +19,13 @@ namespace HC
     {
     public:
         HC::InputHandlerSwitches *ihs;
+        HC::Eeprom *eeprom;
 
-        void setup(HC::InputHandlerSwitches *inputHandlerSwitches)
+        void setup(HC::InputHandlerSwitches *inputHandlerSwitches, HC::Eeprom *eeprom)
         {
             server.begin();
             ihs = inputHandlerSwitches;
+            this->eeprom = eeprom;
         }
 
         void handleEditor(EthernetClient client)
@@ -127,11 +130,8 @@ namespace HC
                     if (!length)
                     {
                         // we read the entire body
-                        LOGN(parseBuf);
                         client.println(F("HTTP/1.1 200 OK"));
                         client.println(F("Connection: close")); // the connection will be closed after completion of the response
-                        client.println();
-                        client.println();
                         end = true;
                     }
                     break;
@@ -143,6 +143,7 @@ namespace HC
                 }
             }
             LOGN(parseBuf);
+            eeprom->writeConfig(parseBuf, strlen(parseBuf));
         }
 
         void run()

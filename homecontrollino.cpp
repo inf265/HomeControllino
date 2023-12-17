@@ -19,7 +19,7 @@ void setup()
     serial.setup();
     eeprom.setup();
     networking.setup(eeprom.macAddress);
-    webserver.setup(&inputHandlerSwitches);
+    webserver.setup(&inputHandlerSwitches, &eeprom);
     inputHandlerSwitches.setup();
 
     char tmp[512]{0};
