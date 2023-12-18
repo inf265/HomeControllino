@@ -30,6 +30,36 @@ namespace HC
 
         void handleEditor(EthernetClient client)
         {
+            bool end{false};
+            bool endDetection{false};
+            char buf[4]{0};
+            char *pBuf = buf;
+            while (!end)
+            {
+                char c = client.read();
+
+                if (c == '\r' || c == '\n')
+                {
+                    endDetection = true;
+                }
+                else
+                {
+                    endDetection = false;
+                    memset(buf, 0, 4);
+                    pBuf = buf;
+                }
+
+                if (endDetection)
+                {
+                    *pBuf = c;
+                    ++pBuf;
+                }
+
+                if (strncmp(buf, "\r\n\r\n", 4) == 0)
+                {
+                    end = true;
+                }
+            }
             char switchConfigRaw[512]{0};
             serializeJson(ihs->switchConfig, switchConfigRaw, 512);
             client.println(F("HTTP/1.1 200 OK"));
@@ -80,6 +110,7 @@ namespace HC
             client.println(F("</script>"));
             client.println(F("</body>"));
             client.println(F("</html>"));
+            client.flush();
         }
 
         void handlePost(EthernetClient client)
@@ -176,6 +207,7 @@ namespace HC
                                 LOGN(F("Found POST"));
                                 handlePost(client);
                                 client.stop();
+                                client.clearWriteError();
                                 LOGN(F("client disconnected"));
                             }
                             else if (strncmp(parseBuf, "GET ", 4) == 0)
@@ -198,6 +230,7 @@ namespace HC
                                 {
                                     handleEditor(client);
                                     client.stop();
+                                    client.clearWriteError();
                                     LOGN(F("client disconnected"));
                                 }
                                 s = ParseState::RESTHEAD;
