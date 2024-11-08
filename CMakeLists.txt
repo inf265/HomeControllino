@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(HomeControllino LANGUAGES C CXX ASM)
+project(PoolControllino LANGUAGES C CXX ASM)
 
 include(cmake/lto.cmake)
 include(cmake/arduino_core.cmake)
@@ -24,25 +24,31 @@ include(cmake/libraries.cmake/functional-vlpp.cmake)
 include(cmake/libraries.cmake/arxcontainer.cmake)
 include(cmake/libraries.cmake/acebutton.cmake)
 
-add_executable(homecontrollino homecontrollino.cpp)
-target_link_libraries(homecontrollino PUBLIC ArduinoCore)
-target_link_libraries(homecontrollino PUBLIC ControllinoCore)
-target_link_libraries(homecontrollino PUBLIC Ethernet)
-target_link_libraries(homecontrollino PUBLIC SPI)
-target_link_libraries(homecontrollino PUBLIC EEPROM)
-target_link_libraries(homecontrollino PUBLIC MDNS)
-target_link_libraries(homecontrollino PUBLIC EthernetWebserver)
-target_link_libraries(homecontrollino PUBLIC TrueRandom)
-target_link_libraries(homecontrollino PUBLIC ACEBUTTON)
+add_executable(PoolControllino PoolControllino.cpp)
+target_link_libraries(PoolControllino PUBLIC ArduinoCore)
+target_link_libraries(PoolControllino PUBLIC ControllinoCore)
+target_link_libraries(PoolControllino PUBLIC Ethernet)
+target_link_libraries(PoolControllino PUBLIC SPI)
+target_link_libraries(PoolControllino PUBLIC EEPROM)
+target_link_libraries(PoolControllino PUBLIC MDNS)
+target_link_libraries(PoolControllino PUBLIC EthernetWebserver)
+target_link_libraries(PoolControllino PUBLIC TrueRandom)
+target_link_libraries(PoolControllino PUBLIC ACEBUTTON)
+target_link_libraries(PoolControllino PUBLIC OneWire)
+target_link_libraries(PoolControllino PUBLIC DallasTemperature)
 
-target_compile_options(homecontrollino PUBLIC
+execute_process(COMMAND git describe --abbrev=4 --dirty --always --tags OUTPUT_VARIABLE GITVERSION OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_STRIP_TRAILING_WHITESPACE)
+
+target_compile_options(PoolControllino PUBLIC
     "-Wall"
     "-Wextra"
     "-pedantic"
     "-felide-constructors"
     "-std=c++0x"
+    "-DCONTROLLINO_MEGA"
+    -DGITVERSION=${GITVERSION}
 )
-arduino_avr_hex(homecontrollino)
+arduino_avr_hex(PoolControllino)
 
 add_executable(blink blink.cpp)
 target_link_libraries(blink PUBLIC ArduinoCore)
@@ -64,4 +70,4 @@ arduino_avr_hex(blink)
 set(ARDUINO_PORT "/dev/ttyACM0"
     CACHE STRING "The serial port for uploading using avrdude")
 arduino_avr_upload(blink ${ARDUINO_PORT})
-arduino_avr_upload(homecontrollino ${ARDUINO_PORT})
+arduino_avr_upload(PoolControllino ${ARDUINO_PORT})

@@ -13,7 +13,6 @@ namespace HC
     public:
         void setup()
         {
-            // Random MAC address stored in EEPROM
             if (EEPROM.read(0) == '#')
             {
                 for (int i = 0; i < 6; i++)
@@ -21,25 +20,24 @@ namespace HC
                     macAddress[i] = EEPROM.read(i + 1);
                 }
             }
-            else
-            {
-                for (int i = 0; i < 6; i++)
-                {
-                    EEPROM.write(i + 1, 0);
-                    while (((macAddress[i] = TrueRandom.random(256)) % 2) != 0)
-                        ;
-                    EEPROM.write(i + 1, macAddress[i]);
-                }
-                EEPROM.write(0, '#');
-            }
+            // Random MAC address stored in EEPROM
+            // for (int i = 0; i < 6; i++)
+            // {
+            //     EEPROM.write(i + 1, 0);
+            //     EEPROM.write(i + 1, macAddress[i]);
+            // }
+            // EEPROM.write(0, '#');
             snprintf(macstr, 18, "%02x:%02x:%02x:%02x:%02x:%02x", macAddress[0], macAddress[1], macAddress[2], macAddress[3], macAddress[4], macAddress[5]);
+            LOG("MAC: ");
+            LOGN(macstr);
         }
 
         void writeConfig(const char *data, uint32_t size)
         {
-            for (uint32_t i = 0; i < strlen(data); ++i)
+            for (uint32_t i = 0; i < size; ++i)
             {
-                EEPROM.write(CONFIG_OFFSET + i, data[i]);
+                LOG((char)data[i]);
+                EEPROM.write(CONFIG_OFFSET + i, (uint8_t)data[i]);
             }
         }
 
@@ -52,15 +50,20 @@ namespace HC
         {
             uint32_t idxCnt{0};
             uint32_t jsonCnt{0};
+            memset(data, 0, size);
+
             while (idxCnt < size)
             {
                 data[idxCnt] = EEPROM.read(CONFIG_OFFSET + idxCnt);
+                // LOGN((char)data[idxCnt]);
+                // LOGN(jsonCnt);
                 if (idxCnt == 0 && data[idxCnt] != '{')
                 {
                     return 1; // failure
                 }
                 if (data[idxCnt] == '{')
                 {
+                    LOGN(idxCnt);
                     ++jsonCnt;
                 }
                 else if (data[idxCnt] == '}')
@@ -83,7 +86,7 @@ namespace HC
             return 0; // good case, last character was the bracket }
         }
 
-        uint8_t macAddress[6];
-        char macstr[18];
+        uint8_t macAddress[6]{0}; // {0x00, 0xfa, 0x0e, 0x86, 0x96, 0xa4};
+        char macstr[18]{0};
     };
 }

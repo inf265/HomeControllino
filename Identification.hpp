@@ -1,8 +1,8 @@
 #pragma once
 
 using Identification = char[16];
-static Identification myId{0};
+Identification myId{0};
 
-char mdnsName[21];
+const char *mdnsName = "poolcontrollino";
 
 #define ITSFORME(remoteId) (strcmp(remoteId, myId) == 0)

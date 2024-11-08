@@ -4,15 +4,32 @@
 #include <EthernetUdp.h>
 #include <ArduinoMDNS.h>
 #include "Identification.hpp"
+#include "PoolControlContext.hpp"
+#include "version.h"
+#include "RealTimeClock.hpp"
 
 namespace HC
 {
-    EthernetUDP multicastUdp;
-    IPAddress multicastip(224, 0, 0, 42);
-    unsigned int multicastport = 4242;
 
     EthernetUDP mDNSUdp;
     MDNS mdns(mDNSUdp);
+
+    EthernetUDP Udp;
+
+    char *IPAddress2String(IPAddress address, char *result)
+    {
+        int len = sprintf(result, "%d", address[0]);
+        result[len] = '.';
+        ++len;
+        len += sprintf(result + len, "%d", address[1]);
+        result[len] = '.';
+        ++len;
+        len += sprintf(result + len, "%d", address[2]);
+        result[len] = '.';
+        ++len;
+        len += sprintf(result + len, "%d", address[3]);
+        return result;
+    }
 
     class Networking
     {
@@ -20,51 +37,97 @@ namespace HC
         void setup(uint8_t *mac)
         {
             // Start up networking
-            Ethernet.begin(mac);
-            if (1)
+            if (Ethernet.begin(mac, 8000, 4000))
             {
-                LOG(F("DHCP ("));
-                LOG(F(")..."));
-                LOG(F("success: "));
+                LOG(F("DHCP succeed: "));
                 LOGN(Ethernet.localIP());
+                IPAddress2String(Ethernet.localIP(), PoolControlContext::instance()->data.clientIP);
+            }
+            else
+            {
+                LOG(F("DHCP failed."));
+                LOGN(Ethernet.localIP());
+                memset(PoolControlContext::instance()->data.clientIP, 0, 16);
             }
 
-            if (multicastUdp.beginMulticast(multicastip, multicastport))
-            {
-                LOGN(F("Multicast address initialized"));
-            }
-            memset(mdnsName, 0, 21);
-            snprintf(mdnsName, 21, "controllino-%02x-%02x-%02x", mac[3], mac[4], mac[5]);
             if (mdns.begin(Ethernet.localIP(), mdnsName))
             {
-                LOGN("MDNS initialized");
+                LOGN(F("MDNS initialized"));
             }
 
-            mdns.addServiceRecord("Controllino mDNS Webserver._http",
+            mdns.addServiceRecord("Pool Controllino mDNS Webserver._http",
                                   80,
                                   MDNSServiceTCP);
+            Udp.begin(13001);
         }
 
         void run()
         {
             mdns.run();
-
-            packetSize = multicastUdp.parsePacket();
-            if (packetSize)
+            if (Ethernet.maintain())
             {
-                // receive incoming UDP packets
-                LOG(F("Received packet :"));
-                int len = multicastUdp.read(incomingPacket, 2048);
-                if (len > 0)
+                LOG(F("DHCP maintain failed."));
+                memset(PoolControlContext::instance()->data.clientIP, 0, 16);
+            }
+            if ((millis() - lastTime) > PoolControlContext::instance()->config.updateTime)
+            {
+                char data[1024]{0};
+                LOGN(getSensorReadings(data, 1024));
+                if (!versionSent && strlen(PoolControlContext::instance()->data.clientIP) != 0)
                 {
-                    incomingPacket[len] = 0;
+                    Udp.beginPacket("89.163.135.79", 13000);
+                    LOGN(gitVersion);
+                    Udp.write(gitVersion);
+                    Udp.endPacket();
+                    Udp.flush();
+                    versionSent = true;
                 }
-                LOG(F("UDP packet contents:"));
-                LOGN(incomingPacket);
+                if (!Udp.beginPacket("89.163.135.79", 13000))
+                    LOGN(F("begin failure"));
+                if (!Udp.write((uint8_t *)data, strlen(data)))
+                    LOGN(F("write failure"));
+                Udp.endPacket();
+                Udp.flush();
+                lastTime = millis();
             }
         }
 
-        char incomingPacket[2048]{0};
-        int packetSize{0};
+        static char *getSensorReadings(char *buffer, size_t size)
+        {
+            JsonDocument readings;
+            char date[20]{0};
+            RealTimeClock::getFullDateTimeString(PoolControlContext::instance()->data.date, date);
+            readings["date"] = String(date);
+            readings["temperature"] = String(PoolControlContext::instance()->data.waterTemperature);
+            readings["housingtemperature"] = String(PoolControlContext::instance()->data.housingTemperature);
+            readings["ph"] = String(PoolControlContext::instance()->data.phValue);
+            readings["phmedian"] = String(PoolControlContext::instance()->data.phValueMedian);
+            readings["redox"] = String(PoolControlContext::instance()->data.redoxValue);
+            readings["redoxmedian"] = String(PoolControlContext::instance()->data.redoxValueMedian);
+            readings["ph-pomp"] = String(PoolControlContext::instance()->data.phPumpState);
+            readings["redox-pomp"] = String(PoolControlContext::instance()->data.redoxPumpState);
+            readings["water-pomp"] = String(PoolControlContext::instance()->data.waterPumpState);
+            readings["waterflowswitch"] = String(PoolControlContext::instance()->data.waterFlowSwitch);
+            readings["powersupply"] = String(PoolControlContext::instance()->data.powerSupply);
+            readings["clientip"] = String(PoolControlContext::instance()->data.clientIP);
+            readings["error"] = String(PoolControlContext::instance()->data.error);
+            readings["errortext"] = PoolControlContext::instance()->data.errorText;
+            readings["errortimestamp"] = String(PoolControlContext::instance()->data.errorTimestamp);
+            readings["warning"] = String(PoolControlContext::instance()->data.warning);
+            readings["warningtext"] = PoolControlContext::instance()->data.warningText;
+            readings["warningtimestamp"] = String(PoolControlContext::instance()->data.warningTimestamp);
+            readings["phadcvalue"] = String(PoolControlContext::instance()->data.phAdcValue);
+            readings["redoxadcvalue"] = String(PoolControlContext::instance()->data.redoxAdcValue);
+            readings["waterflowswitchadcvalue"] = String(PoolControlContext::instance()->data.waterflowSwitchAdcValue);
+            readings["powersupplyadcvalue"] = String(PoolControlContext::instance()->data.powerSupplyAdcValue);
+
+            // String jsonString;
+            serializeJson(readings, buffer, size);
+            return buffer;
+        }
+
+    private:
+        unsigned long lastTime{0};
+        bool versionSent{false};
     };
 }
