@@ -69,6 +69,7 @@ namespace HC
             while (!end)
             {
                 char c = client.read();
+                LOG(c);
 
                 if (c == '\r' || c == '\n')
                 {
@@ -125,8 +126,8 @@ namespace HC
             client.println(F("document.getElementById('getJSON').onclick = function () {"));
             client.println(F("    var xhr = new XMLHttpRequest();"));
             client.print(F("    var url = \"http://"));
-            client.print(mdnsName);
-            client.print(F(".local/config"));
+            client.print(PoolControlContext::instance()->data.clientIP);
+            client.print(F("/config"));
             client.println(F("\";"));
             client.println(F("    xhr.open(\"POST\", url, true);"));
             client.println(F("    xhr.setRequestHeader(\"Content-Type\", \"application/json\");"));
@@ -311,6 +312,7 @@ namespace HC
                     if (client.available())
                     {
                         char c = client.read();
+                        LOG(c);
                         tmpMem[pBidx] = c;
                         ++pBidx;
 
