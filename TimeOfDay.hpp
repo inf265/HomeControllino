@@ -281,7 +281,7 @@ private:
 
     static uint32_t addTime(const TimeOfDay &tod)
     {
-        return (tod.hh * 10000) + (tod.mm * 100) + (tod.ss * 1);
+        return (uint32_t)((uint32_t)tod.hh * (uint32_t)10000) + (uint32_t)((uint32_t)tod.mm * (uint32_t)(uint32_t)100) + (uint32_t)((uint32_t)tod.ss * (uint32_t)1);
     }
 };
 

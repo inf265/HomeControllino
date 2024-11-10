@@ -64,6 +64,9 @@ void setup()
         PoolControlContext::instance()->config.toJson(PoolControlContext::instance()->config.switchConfigRaw, 1024);
         eeprom.writeConfig(PoolControlContext::instance()->config.switchConfigRaw, strlen(PoolControlContext::instance()->config.switchConfigRaw));
     }
+    JsonDocument jsonTmp;
+    deserializeJson(jsonTmp, PoolControlContext::instance()->config.switchConfigRaw);
+    PoolControlContext::instance()->config.fromJson(jsonTmp);
     LOGN(PoolControlContext::instance()->config.switchConfigRaw);
     snprintf(myId, 9, "%02x-%02x-%02x", eeprom.macAddress[3], eeprom.macAddress[4], eeprom.macAddress[5]);
     pinMode(CONTROLLINO_D23, OUTPUT);    // heartbeat blinking
