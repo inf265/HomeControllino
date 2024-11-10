@@ -182,7 +182,6 @@ namespace HC
             client.println(F("Connection: close")); // the connection will be closed after completion of the response
             client.println();
             client.println(F("<html><head><link rel=\"icon\" href=\"data:,\"></head><body><table></table>"));
-            // client.println(Networking::getSensorReadings(memory, 512));
             client.println(F("</body></html>"));
             client.println(F("<script>"));
             client.print(F("let json = '"));
@@ -385,6 +384,7 @@ namespace HC
                             //  if you've gotten to the end of the line (received a newline
                             //  character) and the line is blank, the http request has ended,
                             //  so you can send a reply
+                            pBidx = 0;
                             if (c == '\n' && currentLineIsBlank)
                             {
                                 // send a standard http response header
