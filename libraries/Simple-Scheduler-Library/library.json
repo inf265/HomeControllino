@@ -1,0 +1,28 @@
+{
+  "name": "Simple-Scheduler-Library-for-Arduino",
+  "keywords": "task scheduler",
+  "description": "Library providing a simple task scheduler for Arduino & ESP",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/DennisB66/Simple-Scheduler-Library-for-Arduino.git"
+  },
+  "authors":
+  [
+    {
+      "name": "Dennis Buis",
+      "email": "dennis.buis@gmail.com",
+      "maintainer": true
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "TimerOne",
+      "authors": "Paul Stoffregen",
+      "frameworks": "arduino"
+    }
+  ],
+  "version": "0.1",
+  "frameworks": "arduino",
+  "platforms": "*"
+}
