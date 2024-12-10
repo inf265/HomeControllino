@@ -1,7 +1,7 @@
 #pragma once
 
 using Identification = char[16];
-static Identification myId{0};
+Identification myId{0};
 
 char mdnsName[21];
 

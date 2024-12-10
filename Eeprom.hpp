@@ -14,6 +14,14 @@ namespace HC
         void setup()
         {
             // Random MAC address stored in EEPROM
+            EEPROM.write(0, '#');
+            // EEPROM.write(1, 0x06);
+            // EEPROM.write(2, 0xfa);
+            // EEPROM.write(3, 0x0e);
+            // EEPROM.write(4, 0x86);
+            // EEPROM.write(5, 0x86);
+            // EEPROM.write(6, 0xd4);
+
             if (EEPROM.read(0) == '#')
             {
                 for (int i = 0; i < 6; i++)
@@ -33,6 +41,8 @@ namespace HC
                 EEPROM.write(0, '#');
             }
             snprintf(macstr, 18, "%02x:%02x:%02x:%02x:%02x:%02x", macAddress[0], macAddress[1], macAddress[2], macAddress[3], macAddress[4], macAddress[5]);
+            LOG("MAC: ");
+            LOGN(macstr);
         }
 
         void writeConfig(const char *data, uint32_t size)
@@ -54,6 +64,7 @@ namespace HC
             uint32_t jsonCnt{0};
             while (idxCnt < size)
             {
+                LOG((char)EEPROM.read(CONFIG_OFFSET + idxCnt));
                 data[idxCnt] = EEPROM.read(CONFIG_OFFSET + idxCnt);
                 if (idxCnt == 0 && data[idxCnt] != '{')
                 {

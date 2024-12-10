@@ -36,8 +36,8 @@ namespace HC
         }
     };
 
-    static arx::map<const char *, short, Compare> trnslOutputs;
-    static arx::map<short, const char *> trnslInputs;
+    arx::map<const char *, short, Compare> trnslOutputs;
+    arx::map<short, const char *> trnslInputs;
 
 #define XDSTR(x) CONTROLLINO_D##x
 #define XASTR(x) CONTROLLINO_A##x
@@ -136,7 +136,30 @@ namespace HC
             int current = millis();
             if (event->milliseconds - current > 0)
             {
-                if (switchConfig["c"].containsKey(trnslInputs[event->inputButton]))
+                bool coupleFound{false};
+                JsonString virtualButton;
+                int partner = 0; // switchConfig["c"][trnslInputs[event->inputButton]];
+                for (const auto &kv : switchConfig["c"].as<JsonObject>())
+                {
+                    if (!kv.value().containsKey(trnslInputs[event->inputButton]))
+                    {
+                        break;
+                    }
+                    for (arx::map<short, const char *>::iterator t = trnslInputs.begin(); t != trnslInputs.end(); ++t)
+                    {
+                        if (strcmp(t->second, kv.value()[trnslInputs[event->inputButton]].as<const char *>()) == 0)
+                        {
+                            partner = t->first;
+                        }
+                    }
+                    LOGN(kv.value()[trnslInputs[event->inputButton]].as<const char *>())
+                    LOG("Found partner: ");
+                    LOGN(partner);
+                    virtualButton = kv.key();
+                    coupleFound = true;
+                }
+
+                if (coupleFound) // switchConfig["c"].containsKey(trnslInputs[event->inputButton]))
                 {
                     for (arx::vector<Event *>::iterator it = events.begin(); it != events.end(); ++it)
                     {
@@ -145,7 +168,7 @@ namespace HC
                             LOGN(F("We skip the first element"));
                             continue;
                         }
-                        int partner = switchConfig["c"][trnslInputs[event->inputButton]];
+
                         if ((*it)->inputButton == partner &&
                             (*it)->buttonState == event->buttonState &&
                             (*it)->eventType == event->eventType)
@@ -155,6 +178,7 @@ namespace HC
                             Event *p = *it;
                             events.erase(it);
                             event->inputButton = min(p->inputButton, event->inputButton) + 1000; // rewrite to virtual PIN
+                            trnslInputs.insert(event->inputButton, virtualButton.c_str());
                             delete[] p;
                             break;
                         }
@@ -248,5 +272,4 @@ namespace HC
         AceButton buttons[NUM_INPUTS];
         StaticJsonDocument<1024> switchConfig;
     };
-
 }

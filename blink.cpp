@@ -3,6 +3,7 @@
 #include <Ethernet.h>
 #include <EthernetUdp.h>
 #include <ArduinoMDNS.h>
+#include "Logging.hpp"
 // #include <EthernetWebServer.h>
 #include "defines.h"
 #include <ArduinoJson.h>
@@ -106,6 +107,7 @@ void setup()
     Serial.println("Serial initialized");
 
     // Random MAC address stored in EEPROM
+    EEPROM.write(0, '#');
     if (EEPROM.read(0) == '#')
     {
         for (int i = 0; i < 6; i++)
@@ -115,16 +117,15 @@ void setup()
     }
     else
     {
+        TrueRandom.mac(macAddress);
         for (int i = 0; i < 6; i++)
         {
-            EEPROM.write(i + 1, 0);
-            while (((macAddress[i] = TrueRandom.random(256)) % 2) != 0)
-                ;
             EEPROM.write(i + 1, macAddress[i]);
         }
         EEPROM.write(0, '#');
     }
     snprintf(macstr, 18, "%02x:%02x:%02x:%02x:%02x:%02x", macAddress[0], macAddress[1], macAddress[2], macAddress[3], macAddress[4], macAddress[5]);
+    LOGN(macstr);
 
     // Start up networking
     Ethernet.begin(macAddress);
@@ -149,16 +150,48 @@ void setup()
     server.on(F("/test.svg"), drawGraph);
     server.onNotFound(handleNotFound);
     server.begin();
+
+    Controllino_RTC_init(0);
+    //    Controllino_SetTimeDate(31, 2, 1, 17, 8, 37, 23);
 }
 
 void loop()
 {
+    Ethernet.maintain();
     mdns.run();
     mdns.addServiceRecord("Controllino mDNS Webserver Example._http",
                           80,
                           MDNSServiceTCP);
 
     server.handleClient();
+    Serial.print("Day: ");
+    int n;
+    n = Controllino_GetDay();
+    Serial.println(n);
+
+    Serial.print("WeekDay: ");
+    n = Controllino_GetWeekDay();
+    Serial.println(n);
+
+    Serial.print("Month: ");
+    n = Controllino_GetMonth();
+    Serial.println(n);
+
+    Serial.print("Year: ");
+    n = Controllino_GetYear();
+    Serial.println(n);
+
+    Serial.print("Hour: ");
+    n = Controllino_GetHour();
+    Serial.println(n);
+
+    Serial.print("Minute: ");
+    n = Controllino_GetMinute();
+    Serial.println(n);
+
+    Serial.print("Second: ");
+    n = Controllino_GetSecond();
+    Serial.println(n);
 
     // Recieve Packets
     int packetSize = Udp.parsePacket();

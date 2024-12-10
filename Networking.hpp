@@ -17,18 +17,28 @@ namespace HC
     class Networking
     {
     public:
-        void setup(uint8_t *mac)
+        void setup(uint8_t *mac, String &ipaddress)
         {
-            // Start up networking
-            Ethernet.begin(mac);
-            if (1)
+            if (ipaddress == "")
             {
-                LOG(F("DHCP ("));
-                LOG(F(")..."));
-                LOG(F("success: "));
+                // Start up networking
+                Ethernet.begin(mac);
+                if (1)
+                {
+                    LOG(F("DHCP ("));
+                    LOG(F(")..."));
+                    LOG(F("success: "));
+                    LOGN(Ethernet.localIP());
+                }
+            }
+            else
+            {
+                IPAddress ipa;
+                ipa.fromString(ipaddress);
+                Ethernet.begin(mac, ipa);
+                LOG(F("IP static: "));
                 LOGN(Ethernet.localIP());
             }
-
             if (multicastUdp.beginMulticast(multicastip, multicastport))
             {
                 LOGN(F("Multicast address initialized"));
@@ -54,7 +64,7 @@ namespace HC
             {
                 // receive incoming UDP packets
                 LOG(F("Received packet :"));
-                int len = multicastUdp.read(incomingPacket, 2048);
+                int len = multicastUdp.read(incomingPacket, 1500);
                 if (len > 0)
                 {
                     incomingPacket[len] = 0;
@@ -64,7 +74,7 @@ namespace HC
             }
         }
 
-        char incomingPacket[2048]{0};
+        char incomingPacket[1500]{0};
         int packetSize{0};
     };
 }

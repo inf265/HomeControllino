@@ -14,28 +14,48 @@ HC::Networking networking;
 HC::WebServer webserver;
 HC::InputHandlerSwitches inputHandlerSwitches;
 
+int freeRam()
+{
+    extern int __heap_start, *__brkval;
+    int v;
+    return (int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval);
+}
+
+char switchConfigRaw[1024]{0};
+
 void setup()
 {
     serial.setup();
     eeprom.setup();
-    networking.setup(eeprom.macAddress);
-    webserver.setup(&inputHandlerSwitches, &eeprom);
-    inputHandlerSwitches.setup();
-
-    char tmp[512]{0};
-    if (!eeprom.readConfig(tmp, 512))
+    if (!eeprom.readConfig(switchConfigRaw, 1024))
     {
         LOGN(F("Read Config"));
-        LOGN(tmp);
-        if (deserializeJson(inputHandlerSwitches.switchConfig, (const char *)tmp) != DeserializationError::Ok)
+        LOGN(switchConfigRaw);
+        if (deserializeJson(inputHandlerSwitches.switchConfig, (const char *)switchConfigRaw) != DeserializationError::Ok)
         {
             eeprom.eraseConfig();
+        }
+        else
+        {
+            if (!inputHandlerSwitches.switchConfig.containsKey("a"))
+            {
+                eeprom.eraseConfig();
+            }
         }
     }
     else
     {
         LOGN(F("No Config present"));
     }
+    String ipaddress = "";
+    if (inputHandlerSwitches.switchConfig.containsKey("ipaddress"))
+    {
+        ipaddress = inputHandlerSwitches.switchConfig["ipaddress"].as<String>();
+    }
+    networking.setup(eeprom.macAddress, ipaddress);
+    webserver.setup(&inputHandlerSwitches, &eeprom);
+    inputHandlerSwitches.setup();
+
     snprintf(myId, 9, "%02x-%02x-%02x", eeprom.macAddress[3], eeprom.macAddress[4], eeprom.macAddress[5]);
 }
 
@@ -51,10 +71,11 @@ void loop()
 {
     networking.run();
     webserver.run();
+    Ethernet.maintain();
 
     if (networking.packetSize && networking.incomingPacket[0] == '{') // assume it is json
     {
-        StaticJsonDocument<2048> envelope;
+        DynamicJsonDocument envelope(1024);
         if (deserializeJson(envelope, networking.incomingPacket) == DeserializationError::Ok)
         {
             if (ITSFORME(envelope["d"]))
@@ -63,8 +84,8 @@ void loop()
                 {
                 case static_cast<uint8_t>(Type::SWITCHCONFIG):
                 {
-                    char switchConfigRaw[512]{0};
-                    serializeJson(envelope["v"], switchConfigRaw, 512);
+                    memset(switchConfigRaw, 0, 1024);
+                    serializeJson(envelope["v"], switchConfigRaw, 1024);
                     eeprom.writeConfig(switchConfigRaw, strlen(switchConfigRaw));
                     if (deserializeJson(inputHandlerSwitches.switchConfig, (const char *)switchConfigRaw) != DeserializationError::Ok)
                     {
@@ -80,8 +101,7 @@ void loop()
                 }
                 case static_cast<uint8_t>(Type::BCASTCONFIG):
                 {
-                    char switchConfigRaw[512]{0};
-                    serializeJson(inputHandlerSwitches.switchConfig, switchConfigRaw, 512);
+                    serializeJson(inputHandlerSwitches.switchConfig, switchConfigRaw, 1024);
                     HC::multicastUdp.beginPacket(HC::multicastip, HC::multicastport);
                     HC::multicastUdp.write(switchConfigRaw, strlen(switchConfigRaw));
                     HC::multicastUdp.endPacket();
@@ -110,8 +130,7 @@ void loop()
     {
         inputHandlerSwitches.run();
     }
-    // digitalWrite(CONTROLLINO_D5, HIGH);
-    // delay(200);
-    // digitalWrite(CONTROLLINO_D5, LOW);
-    // delay(200);
+
+    // LOGN(freeRam());
+    // delay(500);
 }
