@@ -112,6 +112,9 @@ namespace HC
             client.println(F("</style>"));
             client.println(F("</head>"));
             client.println(F("<body>"));
+            client.println(F("<a href=\"http://"));
+            client.println(Ethernet.localIP());
+            client.println(F("/editor\">Switch to IP if you're on DNS name</a><br/>"));
             client.println(F("<p>"));
             client.println(F("<button id=\"getJSON\">Apply</button>"));
             client.println(F("</p>"));
@@ -182,7 +185,11 @@ namespace HC
             client.println(F("Content-Type: text/html"));
             client.println(F("Connection: close")); // the connection will be closed after completion of the response
             client.println();
-            client.println(F("<html><head><link rel=\"icon\" href=\"data:,\"></head><body><table></table>"));
+            client.println(F("<html><head><link rel=\"icon\" href=\"data:,\"></head><body>"));
+            client.println(F("<a href=\"http://"));
+            client.println(Ethernet.localIP());
+            client.println(F("/editor\">Switch to IP if you're on DNS name</a><br/>"));
+            client.println(F("<table></table>"));
             client.println(F("</body></html>"));
             client.println(F("<script>"));
             client.print(F("let json = '"));

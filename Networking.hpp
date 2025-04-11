@@ -37,18 +37,14 @@ namespace HC
         void setup(uint8_t *mac)
         {
             // Start up networking
-            if (Ethernet.begin(mac, 8000, 4000))
-            {
-                LOG(F("DHCP succeed: "));
-                LOGN(Ethernet.localIP());
-                IPAddress2String(Ethernet.localIP(), PoolControlContext::instance()->data.clientIP);
-            }
-            else
-            {
-                LOG(F("DHCP failed."));
-                LOGN(Ethernet.localIP());
-                memset(PoolControlContext::instance()->data.clientIP, 0, 16);
-            }
+            String ipaddress = "192.168.100.240";
+            IPAddress ipa;
+            ipa.fromString(ipaddress);
+            Ethernet.begin(mac, ipa);
+            LOG(F("IP static: "));
+            LOGN(Ethernet.localIP());
+            memset(PoolControlContext::instance()->data.clientIP, 0, 16);
+            IPAddress2String(Ethernet.localIP(), PoolControlContext::instance()->data.clientIP);
 
             if (mdns.begin(Ethernet.localIP(), mdnsName))
             {
@@ -68,6 +64,13 @@ namespace HC
             {
                 LOG(F("DHCP maintain failed."));
                 memset(PoolControlContext::instance()->data.clientIP, 0, 16);
+            }
+            else
+            {
+                if (PoolControlContext::instance()->data.clientIP[0] == 0)
+                {
+                    IPAddress2String(Ethernet.localIP(), PoolControlContext::instance()->data.clientIP);
+                }
             }
             if ((millis() - lastTime) > PoolControlContext::instance()->config.updateTime)
             {
