@@ -114,7 +114,7 @@ public:
     void off()
     {
         if (PoolControlContext::instance()->data.waterPumpState == false &&
-            PoolControlContext::instance()->data.waterFlowSwitch == false)
+            PoolControlContext::instance()->data.waterFlowSwitch == false) // TODO: Potential bug here, if the flow switch override has not been set to off after rincing
         {
             hasTodayAlreadySwitchedOn = false;
         }
