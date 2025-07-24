@@ -21,6 +21,8 @@ public:
         this->pumpCycleRunTime = pumpCycleRunTime;
         this->pumpCyclePauseTime = pumpCyclePauseTime;
         this->pumpMaxRuntime = pumpMaxRuntime;
+        this->totalPumpRuntime = TimeSpan(0);
+        this->currentCycleRuntime = TimeSpan(0);
     }
 
     InjectionPumpControl() = delete;
@@ -33,6 +35,8 @@ public:
         this->pumpCycleRunTime = pumpCycleRunTime;
         this->pumpCyclePauseTime = pumpCyclePauseTime;
         this->pumpMaxRuntime = pumpMaxRuntime;
+        this->totalPumpRuntime = TimeSpan(0);
+        this->currentCycleRuntime = TimeSpan(0);
     }
 
     void on()
@@ -59,6 +63,9 @@ public:
         {
             firstSwitchOnTime = PoolControlContext::instance()->data.date;
             hasTodayAlreadySwitchedOn = true;
+            // Reset daily runtime tracking when pump starts for the first time today
+            totalPumpRuntime = TimeSpan(0);
+            currentCycleRuntime = TimeSpan(0);
         }
 
         switch (runState)
@@ -66,6 +73,9 @@ public:
         case RunState::ON:
         {
             switchPump(HIGH);
+            // Update current cycle runtime
+            updateCurrentCycleRuntime();
+
             // did it exceed the daily runtime
             if (maxRunTimeExceeded())
             {
@@ -75,6 +85,8 @@ public:
             // do we have to pause
             if (cycleRunTimeExceed())
             {
+                // Add current cycle runtime to total before pausing
+                totalPumpRuntime = totalPumpRuntime + currentCycleRuntime;
                 pausedAt = PoolControlContext::instance()->data.date;
                 runState = RunState::PAUSING;
                 return;
@@ -84,7 +96,8 @@ public:
         case RunState::OFF:
         {
             switchPump(LOW);
-            startedAt = PoolControlContext::instance()->data.date;
+            currentCycleStartedAt = PoolControlContext::instance()->data.date;
+            currentCycleRuntime = TimeSpan(0);
             runState = RunState::ON;
             break;
         }
@@ -94,7 +107,8 @@ public:
             switchPump(LOW);
             if (cyclePauseTimeExceed())
             {
-                startedAt = PoolControlContext::instance()->data.date;
+                currentCycleStartedAt = PoolControlContext::instance()->data.date;
+                currentCycleRuntime = TimeSpan(0);
                 runState = RunState::ON;
             }
             break;
@@ -113,6 +127,13 @@ public:
 
     void off()
     {
+        // If pump was running, add current cycle runtime to total
+        if (running && runState == RunState::ON)
+        {
+            updateCurrentCycleRuntime();
+            totalPumpRuntime = totalPumpRuntime + currentCycleRuntime;
+        }
+
         if (PoolControlContext::instance()->data.waterPumpState == false &&
             PoolControlContext::instance()->data.waterFlowSwitch == false) // TODO: Potential bug here, if the flow switch override has not been set to off after rincing
         {
@@ -128,6 +149,9 @@ public:
             PoolControlContext::instance()->data.waterFlowSwitch == false)
         {
             hasTodayAlreadySwitchedOn = false;
+            // Reset runtime tracking when water pump stops
+            totalPumpRuntime = TimeSpan(0);
+            currentCycleRuntime = TimeSpan(0);
         }
     }
 
@@ -141,9 +165,13 @@ private:
     bool running{false};
     bool hasTodayAlreadySwitchedOn{false};
     DateTime firstSwitchOnTime;
-    DateTime startedAt;
+    DateTime currentCycleStartedAt;
     DateTime pausedAt;
     RunState runState;
+
+    // Track cumulative actual pump runtime
+    TimeSpan totalPumpRuntime;
+    TimeSpan currentCycleRuntime;
 
     TimeSpan pumpCycleRunTime;
     TimeSpan pumpCyclePauseTime;
@@ -151,13 +179,14 @@ private:
 
     bool cycleRunTimeExceed()
     {
-        TimeSpan runTime = PoolControlContext::instance()->data.date - startedAt;
-        if (runTime.totalseconds() >= pumpCycleRunTime.totalseconds())
+        // Check if current cycle runtime exceeds the cycle run time limit
+        if (currentCycleRuntime.totalseconds() >= pumpCycleRunTime.totalseconds())
         {
             return true;
         }
         return false;
     }
+
     bool cyclePauseTimeExceed()
     {
         TimeSpan pauseTime = PoolControlContext::instance()->data.date - pausedAt;
@@ -170,8 +199,15 @@ private:
 
     bool maxRunTimeExceeded()
     {
-        TimeSpan maxTime = PoolControlContext::instance()->data.date - firstSwitchOnTime;
-        if (maxTime.totalseconds() >= pumpMaxRuntime.totalseconds())
+        // Calculate total runtime including current cycle
+        TimeSpan actualTotalRuntime = totalPumpRuntime;
+        if (runState == RunState::ON)
+        {
+            updateCurrentCycleRuntime();
+            actualTotalRuntime = totalPumpRuntime + currentCycleRuntime;
+        }
+
+        if (actualTotalRuntime.totalseconds() >= pumpMaxRuntime.totalseconds())
         {
             PoolControlContext::instance()->data.warning = true;
             PoolControlContext::instance()->data.warningText = "Max injection time exceeded.";
@@ -179,6 +215,14 @@ private:
             return true;
         }
         return false;
+    }
+
+    void updateCurrentCycleRuntime()
+    {
+        if (runState == RunState::ON)
+        {
+            currentCycleRuntime = PoolControlContext::instance()->data.date - currentCycleStartedAt;
+        }
     }
 
     void switchPump(uint8_t onOff)
