@@ -134,8 +134,7 @@ public:
             totalPumpRuntime = totalPumpRuntime + currentCycleRuntime;
         }
 
-        if (PoolControlContext::instance()->data.waterPumpState == false &&
-            PoolControlContext::instance()->data.waterFlowSwitch == false) // TODO: Potential bug here, if the flow switch override has not been set to off after rincing
+        if (PoolControlContext::instance()->data.waterPumpState == false)
         {
             hasTodayAlreadySwitchedOn = false;
         }
@@ -145,8 +144,7 @@ public:
 
     void maintain()
     {
-        if (PoolControlContext::instance()->data.waterPumpState == false &&
-            PoolControlContext::instance()->data.waterFlowSwitch == false)
+        if (PoolControlContext::instance()->data.waterPumpState == false)
         {
             hasTodayAlreadySwitchedOn = false;
             // Reset runtime tracking when water pump stops
