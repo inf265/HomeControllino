@@ -28,6 +28,7 @@ public:
     bool waterPumpState = 0;  // 0 - OFF
     char clientIP[16]{0};
     DateTime waterPumpRunningSince;
+    unsigned long uptimeSeconds = 0; // Track controller uptime in seconds
     bool error{false};
     String errorText;
     char errorTimestamp[32]{0};

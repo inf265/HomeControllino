@@ -26,6 +26,9 @@ static WaterpumpController waterpumpController;
 static PhController phController;
 static ChlorineController chlorineController;
 
+// Track system uptime
+static unsigned long systemStartTime = 0;
+
 // char switchConfigRaw[1024]{0};
 
 int freeRam()
@@ -72,10 +75,16 @@ void setup()
     pinMode(CONTROLLINO_D23, OUTPUT);    // heartbeat blinking
     pinMode(CONTROLLINO_D17, OUTPUT);    // for reset
     digitalWrite(CONTROLLINO_D17, HIGH); // for reset
+
+    // Initialize system start time for uptime tracking
+    systemStartTime = millis();
 }
 
 void loop()
 {
+    // Update uptime in seconds
+    PoolControlContext::instance()->data.uptimeSeconds = (millis() - systemStartTime) / 1000;
+
     // LOGN(F("---"));
     // LOGN(freeRam());
     // LOGN(F("---"));

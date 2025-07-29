@@ -123,6 +123,7 @@ namespace HC
             readings["redoxadcvalue"] = String(PoolControlContext::instance()->data.redoxAdcValue);
             readings["waterflowswitchadcvalue"] = String(PoolControlContext::instance()->data.waterflowSwitchAdcValue);
             readings["powersupplyadcvalue"] = String(PoolControlContext::instance()->data.powerSupplyAdcValue);
+            readings["uptime"] = String(PoolControlContext::instance()->data.uptimeSeconds);
 
             // String jsonString;
             serializeJson(readings, buffer, size);
