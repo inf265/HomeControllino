@@ -14,13 +14,13 @@ namespace HC
         void setup()
         {
             // Random MAC address stored in EEPROM
-            EEPROM.write(0, '#');
+            // EEPROM.write(0, '#');
             // EEPROM.write(1, 0x06);
             // EEPROM.write(2, 0xfa);
             // EEPROM.write(3, 0x0e);
             // EEPROM.write(4, 0x86);
             // EEPROM.write(5, 0x86);
-            // EEPROM.write(6, 0xd4);
+            // EEPROM.write(6, 0xa4);
 
             if (EEPROM.read(0) == '#')
             {

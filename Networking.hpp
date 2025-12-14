@@ -64,7 +64,8 @@ namespace HC
             {
                 // receive incoming UDP packets
                 LOG(F("Received packet :"));
-                int len = multicastUdp.read(incomingPacket, 1500);
+                memset(incomingPacket, 0, 128);
+                int len = multicastUdp.read(incomingPacket, 128);
                 if (len > 0)
                 {
                     incomingPacket[len] = 0;
@@ -74,7 +75,7 @@ namespace HC
             }
         }
 
-        char incomingPacket[1500]{0};
+        char incomingPacket[128]{0};
         int packetSize{0};
     };
 }

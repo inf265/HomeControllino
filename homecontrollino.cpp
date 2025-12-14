@@ -75,11 +75,14 @@ void loop()
 
     if (networking.packetSize && networking.incomingPacket[0] == '{') // assume it is json
     {
+        LOGN(__LINE__);
         DynamicJsonDocument envelope(1024);
         if (deserializeJson(envelope, networking.incomingPacket) == DeserializationError::Ok)
         {
+            LOGN(__LINE__);
             if (ITSFORME(envelope["d"]))
             {
+                LOGN(__LINE__);
                 switch (envelope["y"].as<uint8_t>())
                 {
                 case static_cast<uint8_t>(Type::SWITCHCONFIG):
@@ -109,6 +112,7 @@ void loop()
                 }
                 case static_cast<uint8_t>(Type::SWITCHTODESTINATION):
                 {
+                    LOGN(__LINE__);
                     inputHandlerSwitches.handleSwitchesMessage(envelope["t"].as<JsonArray>(), envelope["a"].as<uint8_t>());
                     break;
                 }
